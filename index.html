@@ -3,355 +3,390 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kheil Pro Sniper - النسخة المستقلة</title>
+    <title>Kheil Pro 3.0 - التحليل الثلاثي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         * { font-family: 'Cairo', sans-serif; }
-        .gradient-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
-        .neon-text { color: #4ade80; text-shadow: 0 0 10px rgba(74, 222, 128, 0.5); }
-        .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         
-        .step-active { background: #4ade80; color: #064e3b; border-color: #4ade80; }
-        .step-inactive { background: #f1f5f9; color: #94a3b8; }
-        .step-done { background: #0f172a; color: white; }
-
-        .loader {
-            border: 4px solid #f3f3f3; border-top: 4px solid #4ade80;
-            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;
+        .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        /* Modal Styles */
+        .modal { transition: opacity 0.25s ease; }
+        body.modal-active { overflow-x: hidden; overflow-y: visible !important; }
+        
+        .score-circle {
+            width: 60px; height: 60px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;
+            border: 4px solid #e2e8f0;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Analysis Bars */
+        .bar-bg { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-gray-100 min-h-screen">
 
-    <div class="gradient-bg text-white py-8 shadow-xl">
-        <div class="container mx-auto px-4 text-center">
-            <h1 class="text-4xl font-black mb-2 flex justify-center items-center gap-3">
-                🦅 Kheil Pro <span class="text-green-400">Native</span>
+    <header class="gradient-bg text-white py-6 sticky top-0 z-40 shadow-lg">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-black flex items-center gap-2">
+                <i class="fa-solid fa-crosshairs text-green-400"></i> Kheil Pro <span class="text-xs bg-green-500 text-black px-2 py-0.5 rounded">Engine 3.0</span>
             </h1>
-            <p class="text-slate-400">نظام تحليل الدومينات المحلي (بدون سيرفرات)</p>
+            <div class="text-sm opacity-80">محرك التحليل الثلاثي المحلي</div>
         </div>
-    </div>
+    </header>
 
-    <div class="container mx-auto px-4 -mt-6">
-        <div class="flex justify-center gap-2 md:gap-4">
-            <div id="step1-badge" class="px-6 py-3 rounded-xl font-bold border-2 step-active transition-all">1. رفع الصورة</div>
-            <div id="step2-badge" class="px-6 py-3 rounded-xl font-bold border-2 step-inactive transition-all">2. الفلترة</div>
-            <div id="step3-badge" class="px-6 py-3 rounded-xl font-bold border-2 step-inactive transition-all">3. التحليل</div>
-        </div>
-    </div>
-
-    <div class="container mx-auto px-4 py-8 max-w-5xl">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
         
-        <div id="view-step1" class="card p-8 md:p-12 text-center">
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-slate-800 mb-2">استخراج الدومينات من الصور</h2>
-                <p class="text-slate-500">نستخدم محرك Tesseract المحلي لقراءة الصور مباشرة في متصفحك.</p>
-            </div>
-
-            <div id="drop-zone" class="border-4 border-dashed border-slate-200 rounded-3xl p-10 cursor-pointer hover:bg-slate-50 hover:border-green-400 transition-all group">
-                <input type="file" id="file-input" accept="image/*" class="hidden">
-                <div class="text-6xl mb-4 grayscale group-hover:grayscale-0 transition-all">📸</div>
-                <h3 class="text-xl font-bold text-slate-700">اضغط لرفع صورة القائمة</h3>
-                <p class="text-sm text-slate-400 mt-2">يدعم لقطات الشاشة والقوائم المصورة</p>
-            </div>
-
-            <div id="process-area" class="hidden mt-8">
-                <img id="img-preview" class="max-h-60 mx-auto rounded-lg shadow-lg mb-6 border-2 border-slate-200">
-                <div id="progress-container" class="hidden max-w-md mx-auto">
-                    <div class="flex justify-between text-sm font-bold text-slate-600 mb-1">
-                        <span>جاري قراءة النصوص...</span>
-                        <span id="progress-percent">0%</span>
-                    </div>
-                    <div class="h-3 bg-slate-200 rounded-full overflow-hidden">
-                        <div id="progress-bar" class="h-full bg-green-500 w-0 transition-all duration-300"></div>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-2">تتم العملية محلياً على جهازك</p>
+        <div id="step-upload" class="card p-8 text-center mb-8">
+            <h2 class="text-xl font-bold mb-4 text-gray-700">1. أدخل قائمة الدومينات أو صورة</h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1 border-2 border-dashed border-gray-300 rounded-xl p-8 hover:bg-gray-50 cursor-pointer transition" onclick="document.getElementById('file-input').click()">
+                    <input type="file" id="file-input" accept="image/*" class="hidden">
+                    <i class="fa-solid fa-camera text-4xl text-gray-400 mb-2"></i>
+                    <p>رفع صورة (OCR)</p>
                 </div>
-                <button id="btn-extract" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition-all shadow-lg shadow-green-500/20">
-                    ⚡ بدء الاستخراج
-                </button>
+                <div class="flex-1">
+                    <textarea id="manual-text" class="w-full h-full p-4 border rounded-xl" placeholder="أو الصق الدومينات هنا..."></textarea>
+                </div>
             </div>
+            <button onclick="processInput()" class="mt-4 bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 w-full md:w-auto">
+                🚀 بدء التحليل الثلاثي
+            </button>
+            <div id="ocr-status" class="hidden mt-2 text-green-600 font-bold text-sm">جارٍ قراءة الصورة... <span id="ocr-progress">0%</span></div>
         </div>
 
-        <div id="view-step2" class="hidden card p-8">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-slate-800">نتائج الاستخراج والفلترة</h2>
-                <div class="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold text-sm">
-                    تم العثور على: <span id="count-raw">0</span>
+        <div id="step-results" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">نتائج الفحص (<span id="count-result">0</span>)</h2>
+                <div class="flex gap-2">
+                    <span class="text-xs bg-white px-3 py-1 rounded border">✅ .com/.ai فقط</span>
+                    <span class="text-xs bg-white px-3 py-1 rounded border">🚫 لا أرقام/هايفن</span>
                 </div>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-8">
-                <div>
-                    <h3 class="font-bold text-slate-500 mb-3 text-sm">النص الخام (قبل التنظيف)</h3>
-                    <textarea id="raw-text" class="w-full h-64 p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm font-mono" readonly></textarea>
+            <div class="grid gap-4" id="results-grid">
                 </div>
+        </div>
+    </div>
 
-                <div class="space-y-4">
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <h3 class="font-bold text-slate-800 mb-3">⚙️ قواعد الفلترة القاسية</h3>
-                        <label class="flex items-center gap-2 mb-2 cursor-pointer">
-                            <input type="checkbox" checked class="w-5 h-5 accent-green-500" id="filter-ext">
-                            <span>امتدادات Premium فقط (.com, .ai, .io)</span>
-                        </label>
-                        <label class="flex items-center gap-2 mb-2 cursor-pointer">
-                            <input type="checkbox" checked class="w-5 h-5 accent-green-500" id="filter-len">
-                            <span>الطول أقل من 12 حرف</span>
-                        </label>
-                        <label class="flex items-center gap-2 mb-2 cursor-pointer">
-                            <input type="checkbox" checked class="w-5 h-5 accent-green-500" id="filter-num">
-                            <span>منع الأرقام (No Numbers)</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked class="w-5 h-5 accent-green-500" id="filter-clean">
-                            <span>تنظيف الرموز الزائدة</span>
-                        </label>
+    <div id="report-modal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        
+        <div class="modal-container bg-white w-11/12 md:max-w-3xl mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto max-h-[90vh]">
+            <div class="modal-content py-4 text-left px-6">
+                <div class="flex justify-between items-center pb-3 border-b">
+                    <p class="text-2xl font-bold text-gray-800" id="modal-domain">domain.com</p>
+                    <div class="cursor-pointer z-50" onclick="toggleModal()">
+                        <i class="fa-solid fa-times text-2xl"></i>
                     </div>
-                    <button onclick="runFilter()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-900">🔄 تطبيق الفلترة</button>
-                    <button onclick="goToAnalysis()" class="w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600 shadow-lg shadow-green-500/30">➡️ الانتقال للتحليل النهائي</button>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6 mt-6 text-center">
+                    
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                        <div class="text-3xl mb-2">👮‍♂️</div>
+                        <h3 class="font-bold text-blue-800 mb-2">التحليل الجنائي</h3>
+                        <div class="flex justify-center mb-2">
+                            <div class="score-circle text-blue-600 border-blue-200" id="score-forensic">0</div>
+                        </div>
+                        <ul class="text-xs text-right space-y-1 text-gray-600" id="list-forensic"></ul>
+                    </div>
+
+                    <div class="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                        <div class="text-3xl mb-2">🎯</div>
+                        <h3 class="font-bold text-purple-800 mb-2">تحليل القناص</h3>
+                        <div class="flex justify-center mb-2">
+                            <div class="score-circle text-purple-600 border-purple-200" id="score-sniper">0</div>
+                        </div>
+                        <ul class="text-xs text-right space-y-1 text-gray-600" id="list-sniper"></ul>
+                    </div>
+
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-100">
+                        <div class="text-3xl mb-2">👨‍⚖️</div>
+                        <h3 class="font-bold text-green-800 mb-2">تحليل الخبير</h3>
+                        <div class="flex justify-center mb-2">
+                            <div class="score-circle text-green-600 border-green-200" id="score-expert">0</div>
+                        </div>
+                        <ul class="text-xs text-right space-y-1 text-gray-600" id="list-expert"></ul>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-gray-50 p-4 rounded-xl">
+                    <h4 class="font-bold text-gray-700 mb-3 text-sm">🔍 التحقق اليدوي النهائي (مطلوب):</h4>
+                    <div class="grid grid-cols-3 gap-3">
+                        <a id="link-godaddy" target="_blank" class="bg-white border hover:bg-gray-100 text-center py-2 rounded text-sm font-bold text-green-600">
+                            💰 GoDaddy Value
+                        </a>
+                        <a id="link-archive" target="_blank" class="bg-white border hover:bg-gray-100 text-center py-2 rounded text-sm font-bold text-blue-600">
+                            🕰 Wayback History
+                        </a>
+                        <a id="link-whois" target="_blank" class="bg-white border hover:bg-gray-100 text-center py-2 rounded text-sm font-bold text-gray-600">
+                            🔒 Whois Check
+                        </a>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-4 mt-4 border-t">
+                    <button class="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-900" onclick="toggleModal()">إغلاق التقرير</button>
                 </div>
             </div>
-            
-            <div id="filtered-list" class="mt-6 flex flex-wrap gap-2">
-                </div>
         </div>
-
-        <div id="view-step3" class="hidden card p-8">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-black text-slate-800">تقرير كحيل برو</h2>
-                <p class="text-slate-500">التحليل الخوارزمي المتقدم</p>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-right">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-600">
-                            <th class="p-4 rounded-r-xl">الدومين</th>
-                            <th class="p-4">التحليل (Tags)</th>
-                            <th class="p-4">النقاط (Score)</th>
-                            <th class="p-4 rounded-l-xl">أدوات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="analysis-table-body">
-                        </tbody>
-                </table>
-            </div>
-            
-            <div class="mt-8 text-center">
-                <button onclick="location.reload()" class="text-slate-400 hover:text-slate-600 underline">بدء عملية جديدة</button>
-            </div>
-        </div>
-
     </div>
 
     <script>
-        // --- 1. CONFIGURATION (قواعد اللعبة) ---
-        const PREMIUM_TLDS = ['com', 'ai', 'io', 'co', 'net', 'org', 'app'];
-        const TREND_KEYWORDS = ['ai', 'gpt', 'tech', 'data', 'meta', 'soft', 'hub', 'lab', 'sys', 'bot', 'code', 'flow', 'web'];
-        const BAD_KEYWORDS = ['cheap', 'free', 'buy', 'porn', 'sex', 'hack', 'crack', 'spam', 'junk', '123'];
+        // --- Kheil Pro 3.0 Logic Definitions ---
+        const BAD_WORDS = ['cheap', 'free', 'buy', 'best', 'online', 'store', 'shop', 'sex', 'porn', 'hack', 'crack', 'spam', 'junk', 'get', 'try'];
+        const TREND_WORDS = ['ai', 'gpt', 'tech', 'data', 'flow', 'soft', 'meta', 'chain', 'cloud', 'bot', 'lab', 'sys', 'agent', 'link', 'net', 'web', 'pay'];
+        const HARD_TO_SAY = ['q', 'x', 'z', 'j']; // Letters that might hurt radio test if not used well
 
-        let rawDomains = [];
-        let cleanDomains = [];
+        let domainsData = [];
 
-        // --- 2. UPLOAD & OCR LOGIC ---
-        const fileInput = document.getElementById('file-input');
-        const dropZone = document.getElementById('drop-zone');
-        const imgPreview = document.getElementById('img-preview');
-
-        dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', handleFile);
-
-        function handleFile(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    imgPreview.src = ev.target.result;
-                    document.getElementById('process-area').classList.remove('hidden');
-                    dropZone.classList.add('hidden');
-                }
-                reader.readAsDataURL(file);
+        // --- 1. Processing Logic ---
+        function processInput() {
+            const fileInput = document.getElementById('file-input');
+            const textArea = document.getElementById('manual-text');
+            
+            if (fileInput.files.length > 0) {
+                runOCR(fileInput.files[0]);
+            } else if (textArea.value.trim().length > 0) {
+                parseAndAnalyze(textArea.value);
+            } else {
+                alert("الرجاء رفع صورة أو كتابة دومينات!");
             }
         }
 
-        document.getElementById('btn-extract').addEventListener('click', () => {
-            const btn = document.getElementById('btn-extract');
-            const progressContainer = document.getElementById('progress-container');
-            const progressBar = document.getElementById('progress-bar');
-            const progressPercent = document.getElementById('progress-percent');
-            
-            btn.classList.add('hidden');
-            progressContainer.classList.remove('hidden');
-
-            // تشغيل Tesseract OCR
+        function runOCR(file) {
+            document.getElementById('ocr-status').classList.remove('hidden');
             Tesseract.recognize(
-                imgPreview.src,
-                'eng', // اللغة الإنجليزية
-                {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const pct = Math.floor(m.progress * 100);
-                            progressBar.style.width = pct + '%';
-                            progressPercent.innerText = pct + '%';
-                        }
-                    }
-                }
+                file, 'eng',
+                { logger: m => { if (m.status === 'recognizing text') document.getElementById('ocr-progress').innerText = Math.floor(m.progress * 100) + '%'; }}
             ).then(({ data: { text } }) => {
-                processExtractedText(text);
+                document.getElementById('ocr-status').classList.add('hidden');
+                parseAndAnalyze(text);
             });
-        });
-
-        function processExtractedText(text) {
-            document.getElementById('raw-text').value = text;
-            
-            // استخدام Regex قوي لاستخراج أي شيء يشبه الدومين
-            // يبحث عن: كلمة + نقطة + امتداد (من 2 إلى 4 حروف)
-            const regex = /\b[a-zA-Z0-9-]+\.[a-zA-Z]{2,4}\b/g;
-            const matches = text.match(regex);
-            
-            rawDomains = matches ? [...new Set(matches.map(d => d.toLowerCase()))] : [];
-            
-            switchStep(2);
-            document.getElementById('count-raw').innerText = rawDomains.length;
-            runFilter();
         }
 
-        // --- 3. FILTER LOGIC (محرك الفلترة المحلي) ---
-        function runFilter() {
-            const useExt = document.getElementById('filter-ext').checked;
-            const useLen = document.getElementById('filter-len').checked;
-            const useNum = document.getElementById('filter-num').checked;
-
-            cleanDomains = rawDomains.filter(domain => {
-                const parts = domain.split('.');
+        function parseAndAnalyze(text) {
+            // Regex to find domains
+            const regex = /[a-zA-Z0-9-]+\.[a-zA-Z]{2,4}/g;
+            const matches = text.match(regex) || [];
+            
+            // Filter Logic (Hard Filters)
+            const filtered = matches.map(d => d.toLowerCase()).filter(d => {
+                const parts = d.split('.');
                 const name = parts[0];
                 const ext = parts[1];
-
-                if (useExt && !PREMIUM_TLDS.includes(ext)) return false;
-                if (useLen && name.length > 12) return false;
-                if (useNum && /\d/.test(name)) return false;
                 
-                // تنظيف إضافي: استبعاد التكرار الشديد (aaabbb)
-                if (/(.)\1\1/.test(name)) return false; 
-
+                // Kheil Hard Filters:
+                if (!['com', 'ai', 'io', 'net', 'co'].includes(ext)) return false; // Allowed Extensions
+                if (name.length > 12) return false; // Max Length
+                if (/\d/.test(name)) return false; // No Numbers
+                if (name.includes('-')) return false; // No Hyphens
+                if (/(.)\1\1/.test(name)) return false; // No triple letters (aaabbb)
+                
                 return true;
             });
 
-            // عرض النتائج
-            const container = document.getElementById('filtered-list');
-            container.innerHTML = '';
-            if (cleanDomains.length === 0) {
-                container.innerHTML = '<div class="text-red-500 font-bold p-4">لم ينجح أي دومين في الفلترة! حاول تخفيف القيود.</div>';
-            } else {
-                cleanDomains.forEach(d => {
-                    container.innerHTML += `<div class="bg-white border border-slate-200 px-3 py-1 rounded-lg text-slate-700 font-mono shadow-sm">${d}</div>`;
-                });
-            }
+            // Analyze each domain
+            domainsData = filtered.map(d => runTriAnalysis(d));
+            
+            // Sort by Total Score
+            domainsData.sort((a, b) => b.totalScore - a.totalScore);
+            
+            renderResults();
         }
 
-        function goToAnalysis() {
-            if (cleanDomains.length === 0) return alert('لا توجد دومينات لتحليلها!');
-            switchStep(3);
-            renderAnalysisTable();
-        }
-
-        // --- 4. SCORING ALGORITHM (الخوارزمية الذكية) ---
-        function calculateScore(domain) {
+        // --- 2. THE CORE ENGINE: TRI-ANALYSIS ---
+        function runTriAnalysis(domain) {
             const parts = domain.split('.');
             const name = parts[0];
             const ext = parts[1];
             
-            let score = 50; // بداية
-            let tags = [];
+            let report = {
+                domain: domain,
+                forensic: { score: 100, logs: [] },
+                sniper: { score: 0, logs: [] },
+                expert: { score: 50, logs: [] },
+                totalScore: 0
+            };
 
-            // 1. Forensic Check (الجنائي)
-            let isSpam = false;
-            BAD_KEYWORDS.forEach(bad => {
-                if (name.includes(bad)) {
-                    score -= 40; 
-                    tags.push('<span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">⚠️ Risk</span>');
-                    isSpam = true;
+            // --- A. Forensic Analysis (Start at 100, deduct) ---
+            // 1. Check Bad Words
+            let hasBadWord = false;
+            BAD_WORDS.forEach(w => {
+                if (name.includes(w)) {
+                    report.forensic.score -= 40;
+                    report.forensic.logs.push(`⚠️ كلمة رخيصة: ${w}`);
+                    hasBadWord = true;
+                }
+            });
+            if (!hasBadWord) report.forensic.logs.push("✅ خالٍ من الكلمات المسيئة");
+
+            // 2. Length Risk
+            if (name.length > 10) {
+                report.forensic.score -= 10;
+                report.forensic.logs.push("⚠️ طويل نسبياً (احتمال خطأ إملائي)");
+            }
+
+            // --- B. Sniper Analysis (Start at 0, add) ---
+            // 1. Extension Value
+            if (ext === 'ai') { 
+                report.sniper.score += 40; 
+                report.sniper.logs.push("🔥 امتداد ذكاء اصطناعي (.ai)");
+            } else if (ext === 'com') {
+                report.sniper.score += 30;
+                report.sniper.logs.push("👑 الملك (.com)");
+            } else {
+                report.sniper.score += 10;
+            }
+
+            // 2. Trend Keywords
+            let trendFound = false;
+            TREND_WORDS.forEach(w => {
+                if (name.includes(w)) {
+                    report.sniper.score += 25;
+                    report.sniper.logs.push(`🚀 كلمة تريند: ${w.toUpperCase()}`);
+                    trendFound = true;
                 }
             });
 
-            // 2. Sniper Check (التريند)
-            TREND_KEYWORDS.forEach(trend => {
-                if (name.includes(trend)) {
-                    score += 15;
-                    tags.push(`<span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">🔥 ${trend.toUpperCase()}</span>`);
-                }
-            });
-
-            // 3. Expert Check (الجودة)
+            // 3. Liquidity (Short Length)
             if (name.length <= 4) {
-                score += 30;
-                tags.push('<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">💎 Rare 4L</span>');
+                report.sniper.score += 30;
+                report.sniper.logs.push("💎 سيولة عالية (4 أحرف)");
             } else if (name.length <= 6) {
-                score += 15;
+                report.sniper.score += 15;
             }
 
-            // الامتداد
-            if (ext === 'ai') { score += 20; tags.push('<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">🤖 AI</span>'); }
-            if (ext === 'com') { score += 10; tags.push('<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👑 COM</span>'); }
-
-            // نطق (حساب الحروف المتحركة)
-            const vowels = (name.match(/[aeiou]/g) || []).length;
-            if (vowels === 0 && name.length > 3) {
-                score -= 10;
-                tags.push('<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Hard to say</span>');
+            // --- C. Expert Analysis (Start at 50, adjust) ---
+            // 1. Radio Test (Pronounceability)
+            const vowels = (name.match(/[aeiouy]/g) || []).length;
+            const ratio = vowels / name.length;
+            
+            if (ratio >= 0.2 && ratio <= 0.6) {
+                report.expert.score += 20;
+                report.expert.logs.push("🗣️ نطق متوازن (Radio Test Pass)");
+            } else {
+                report.expert.score -= 10;
+                report.expert.logs.push("❌ صعب النطق (نقص/زيادة حروف علة)");
             }
 
-            // Cap score
-            if (score > 100) score = 100;
-            if (score < 0) score = 0;
+            // 2. Ambiguity Check
+            let confusing = false;
+            HARD_TO_SAY.forEach(char => {
+                if (name.includes(char)) confusing = true;
+            });
+            if (confusing) {
+                report.expert.score -= 15;
+                report.expert.logs.push("⚠️ يحتوي حروف مربكة (q,x,z)");
+            } else {
+                report.expert.logs.push("✅ حروف واضحة");
+            }
+            
+            // 3. Brandability (Repeating patterns)
+            if (name.length % 2 === 0 && name.length <= 8) {
+                 report.expert.score += 10; // Even numbers look better in logos often
+            }
 
-            return { score, tags: tags.join(' ') };
+            // Normalize Scores (0-100)
+            [report.forensic, report.sniper, report.expert].forEach(cat => {
+                if (cat.score > 100) cat.score = 100;
+                if (cat.score < 0) cat.score = 0;
+            });
+
+            // Weighted Average
+            report.totalScore = Math.floor((report.forensic.score * 0.3) + (report.sniper.score * 0.4) + (report.expert.score * 0.3));
+
+            return report;
         }
 
-        function renderAnalysisTable() {
-            const tbody = document.getElementById('analysis-table-body');
-            tbody.innerHTML = '';
+        // --- 3. UI Rendering ---
+        function renderResults() {
+            const grid = document.getElementById('results-grid');
+            document.getElementById('step-upload').classList.add('hidden');
+            document.getElementById('step-results').classList.remove('hidden');
+            document.getElementById('count-result').innerText = domainsData.length;
             
-            // ترتيب حسب السكور
-            const analyzedData = cleanDomains.map(d => ({ domain: d, ...calculateScore(d) }))
-                                             .sort((a, b) => b.score - a.score);
+            grid.innerHTML = '';
 
-            analyzedData.forEach(item => {
-                let scoreColor = item.score > 75 ? 'text-green-500' : (item.score > 40 ? 'text-yellow-500' : 'text-red-500');
+            if (domainsData.length === 0) {
+                grid.innerHTML = `<div class="p-8 text-center text-gray-500">لم ينجح أي دومين في الفلترة القاسية!</div>`;
+                return;
+            }
+
+            domainsData.forEach((d, index) => {
+                let badgeColor = d.totalScore > 75 ? 'bg-green-100 text-green-800' : (d.totalScore > 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800');
                 
-                let row = `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-all">
-                        <td class="p-4 font-bold text-slate-800 text-lg">${item.domain}</td>
-                        <td class="p-4 flex flex-wrap gap-1">${item.tags || '-'}</td>
-                        <td class="p-4 font-black text-xl ${scoreColor}">${item.score}</td>
-                        <td class="p-4">
-                            <div class="flex gap-2">
-                                <a href="https://www.godaddy.com/domain-value-appraisal/appraisal/?domainToCheck=${item.domain}" target="_blank" class="bg-slate-800 text-white px-3 py-1 rounded text-xs hover:bg-green-500 transition-colors">💰 Value</a>
-                                <a href="https://web.archive.org/web/*/${item.domain}" target="_blank" class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs hover:bg-gray-300 transition-colors">🕰 History</a>
+                let card = `
+                <div class="card p-4 flex justify-between items-center hover:shadow-lg transition">
+                    <div class="flex items-center gap-4">
+                        <div class="font-black text-xl text-gray-800">${index + 1}.</div>
+                        <div>
+                            <div class="font-bold text-lg text-gray-900">${d.domain}</div>
+                            <div class="text-xs text-gray-400">
+                                👮‍♂️ ${d.forensic.score} | 🎯 ${d.sniper.score} | 👨‍⚖️ ${d.expert.score}
                             </div>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="text-2xl font-black ${badgeColor.replace('bg-', 'text-').split(' ')[1]}">${d.totalScore}</div>
+                        <button onclick="openReport(${index})" class="bg-gray-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-green-600 transition">
+                            عرض التقرير 📄
+                        </button>
+                    </div>
+                </div>`;
+                grid.innerHTML += card;
             });
         }
 
-        // --- UTILS ---
-        function switchStep(step) {
-            // UI Update
-            for (let i = 1; i <= 3; i++) {
-                document.getElementById(`view-step${i}`).classList.add('hidden');
-                document.getElementById(`step${i}-badge`).classList.remove('step-active');
-                if (i < step) document.getElementById(`step${i}-badge`).classList.add('step-done', 'border-slate-800');
-                else document.getElementById(`step${i}-badge`).classList.add('step-inactive');
-            }
+        // --- 4. Modal Logic ---
+        function openReport(index) {
+            const data = domainsData[index];
             
-            document.getElementById(`view-step${step}`).classList.remove('hidden');
-            document.getElementById(`step${step}-badge`).classList.remove('step-inactive', 'step-done');
-            document.getElementById(`step${step}-badge`).classList.add('step-active');
+            document.getElementById('modal-domain').innerText = data.domain;
+            
+            // Set Scores
+            setScore('forensic', data.forensic.score);
+            setScore('sniper', data.sniper.score);
+            setScore('expert', data.expert.score);
+            
+            // Set Logs
+            setLogs('forensic', data.forensic.logs);
+            setLogs('sniper', data.sniper.logs);
+            setLogs('expert', data.expert.logs);
+            
+            // Set Links
+            document.getElementById('link-godaddy').href = `https://www.godaddy.com/domain-value-appraisal/appraisal/?domainToCheck=${data.domain}`;
+            document.getElementById('link-archive').href = `https://web.archive.org/web/*/${data.domain}`;
+            document.getElementById('link-whois').href = `https://www.whois.com/whois/${data.domain}`;
+
+            toggleModal();
+        }
+
+        function setScore(type, score) {
+            const el = document.getElementById(`score-${type}`);
+            el.innerText = score;
+            // Color coding
+            el.className = `score-circle ${score > 70 ? 'text-green-600 border-green-200' : (score > 40 ? 'text-yellow-600 border-yellow-200' : 'text-red-600 border-red-200')}`;
+        }
+
+        function setLogs(type, logs) {
+            const list = document.getElementById(`list-${type}`);
+            list.innerHTML = logs.map(l => `<li>${l}</li>`).join('');
+        }
+
+        function toggleModal() {
+            const body = document.querySelector('body');
+            const modal = document.querySelector('.modal');
+            modal.classList.toggle('opacity-0');
+            modal.classList.toggle('pointer-events-none');
+            body.classList.toggle('modal-active');
         }
     </script>
 </body>
