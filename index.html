@@ -3,398 +3,355 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Domain Sniper Pro - قناص الدومينات المتقدم 2026</title>
+    <title>Kheil Pro Sniper - النسخة المستقلة</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-        
         * { font-family: 'Cairo', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        .neon-text { color: #4ade80; text-shadow: 0 0 10px rgba(74, 222, 128, 0.5); }
+        .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        
-        .tab-item {
-            position: relative; padding: 16px 24px; border-radius: 12px;
-            transition: all 0.3s ease; cursor: pointer; border: 2px solid transparent;
+        .step-active { background: #4ade80; color: #064e3b; border-color: #4ade80; }
+        .step-inactive { background: #f1f5f9; color: #94a3b8; }
+        .step-done { background: #0f172a; color: white; }
+
+        .loader {
+            border: 4px solid #f3f3f3; border-top: 4px solid #4ade80;
+            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;
         }
-        
-        .tab-item.completed { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; cursor: default; }
-        .tab-item.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-color: #fff; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
-        .tab-item.locked { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
-        .tab-item:not(.locked):not(.active):not(.completed):hover { background: #f9fafb; border-color: #667eea; }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .upload-zone { border: 3px dashed #d1d5db; transition: all 0.3s ease; }
-        .upload-zone:hover { border-color: #667eea; background-color: #f9fafb; }
-        .upload-zone.dragover { border-color: #667eea; background-color: #eef2ff; transform: scale(1.02); }
-        
-        .domain-chip { background: white; border: 2px solid #e5e7eb; padding: 12px 16px; border-radius: 12px; transition: all 0.2s ease; cursor: pointer; }
-        .domain-chip:hover { border-color: #667eea; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2); }
-        .domain-chip.passed { border-color: #10b981; background: #d1fae5; }
-        
-        .filter-card { background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; transition: all 0.2s ease; }
-        .filter-card:hover { border-color: #667eea; }
-        
-        .analysis-card { background: white; border-radius: 16px; border: 2px solid #e5e7eb; padding: 20px; transition: all 0.3s ease; }
-        .analysis-card:hover { border-color: #667eea; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2); transform: translateY(-3px); }
-        
-        .score-bar { height: 8px; border-radius: 4px; transition: width 0.5s ease; }
-        .score-excellent { color: #10b981; } .score-good { color: #3b82f6; } .score-average { color: #f59e0b; } .score-poor { color: #ef4444; }
-        
-        .loading-spinner { border: 3px solid #f3f4f6; border-top: 3px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .rank-badge { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.25rem; }
-        .rank-1 { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; }
-        .rank-2 { background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%); color: white; }
-        .rank-3 { background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%); color: white; }
-        .rank-other { background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); color: white; }
-
-        .stat-number { font-size: 2.5rem; font-weight: 900; line-height: 1; }
-        
-        .next-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: all 0.3s ease; }
-        .next-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); }
-        .next-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
-<body class="bg-gray-50">
-    
-    <header class="gradient-bg text-white py-6 shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4">
-            <h1 class="text-3xl md:text-4xl font-bold text-center flex items-center justify-center gap-3">
-                🎯 Domain Sniper Pro
-                <span class="text-sm bg-white/20 px-3 py-1 rounded-full">2026</span>
-            </h1>
-            <p class="text-purple-100 mt-2 text-center">نظام المحاكاة الذكي - 4 مراحل احترافية</p>
-        </div>
-    </header>
+<body class="bg-slate-50 min-h-screen">
 
-    <div class="bg-white shadow-md py-6 sticky top-[88px] z-40">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-4 gap-2 md:gap-4">
-                <div id="tab1" class="tab-item active text-center" onclick="switchTab(1)">
-                    <div class="text-2xl mb-1">📸</div>
-                    <div class="text-xs md:text-sm font-bold">المرحلة 1</div>
-                </div>
-                <div id="tab2" class="tab-item locked text-center" onclick="switchTab(2)">
-                    <div class="text-2xl mb-1">🔍</div>
-                    <div class="text-xs md:text-sm font-bold">المرحلة 2</div>
-                </div>
-                <div id="tab3" class="tab-item locked text-center" onclick="switchTab(3)">
-                    <div class="text-2xl mb-1">🎯</div>
-                    <div class="text-xs md:text-sm font-bold">المرحلة 3</div>
-                </div>
-                <div id="tab4" class="tab-item locked text-center" onclick="switchTab(4)">
-                    <div class="text-2xl mb-1">🏆</div>
-                    <div class="text-xs md:text-sm font-bold">المرحلة 4</div>
-                </div>
-            </div>
+    <div class="gradient-bg text-white py-8 shadow-xl">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl font-black mb-2 flex justify-center items-center gap-3">
+                🦅 Kheil Pro <span class="text-green-400">Native</span>
+            </h1>
+            <p class="text-slate-400">نظام تحليل الدومينات المحلي (بدون سيرفرات)</p>
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-8 max-w-7xl">
+    <div class="container mx-auto px-4 -mt-6">
+        <div class="flex justify-center gap-2 md:gap-4">
+            <div id="step1-badge" class="px-6 py-3 rounded-xl font-bold border-2 step-active transition-all">1. رفع الصورة</div>
+            <div id="step2-badge" class="px-6 py-3 rounded-xl font-bold border-2 step-inactive transition-all">2. الفلترة</div>
+            <div id="step3-badge" class="px-6 py-3 rounded-xl font-bold border-2 step-inactive transition-all">3. التحليل</div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
         
-        <div id="content1" class="tab-content active">
-            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">📸 المرحلة 1: رفع الصورة</h2>
-                
-                <div id="uploadZone" class="upload-zone rounded-xl p-12 text-center cursor-pointer mb-6">
-                    <input type="file" id="imageInput" accept="image/*" class="hidden">
-                    <div id="uploadPlaceholder">
-                        <div class="text-6xl mb-4">📷</div>
-                        <p class="text-lg font-semibold text-gray-700">اضغط هنا لرفع صورة الدومينات</p>
-                    </div>
-                    <div id="imagePreviewContainer" class="hidden">
-                        <img id="imagePreview" class="max-h-80 mx-auto rounded-lg shadow-lg mb-4">
-                        <p class="text-green-600 font-bold">تم رفع الصورة بنجاح</p>
-                    </div>
-                </div>
+        <div id="view-step1" class="card p-8 md:p-12 text-center">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">استخراج الدومينات من الصور</h2>
+                <p class="text-slate-500">نستخدم محرك Tesseract المحلي لقراءة الصور مباشرة في متصفحك.</p>
+            </div>
 
-                <button id="extractBtn" disabled class="w-full next-btn text-white font-bold py-4 px-8 rounded-lg shadow-lg text-lg">
-                    🚀 استخراج الدومينات من الصورة
+            <div id="drop-zone" class="border-4 border-dashed border-slate-200 rounded-3xl p-10 cursor-pointer hover:bg-slate-50 hover:border-green-400 transition-all group">
+                <input type="file" id="file-input" accept="image/*" class="hidden">
+                <div class="text-6xl mb-4 grayscale group-hover:grayscale-0 transition-all">📸</div>
+                <h3 class="text-xl font-bold text-slate-700">اضغط لرفع صورة القائمة</h3>
+                <p class="text-sm text-slate-400 mt-2">يدعم لقطات الشاشة والقوائم المصورة</p>
+            </div>
+
+            <div id="process-area" class="hidden mt-8">
+                <img id="img-preview" class="max-h-60 mx-auto rounded-lg shadow-lg mb-6 border-2 border-slate-200">
+                <div id="progress-container" class="hidden max-w-md mx-auto">
+                    <div class="flex justify-between text-sm font-bold text-slate-600 mb-1">
+                        <span>جاري قراءة النصوص...</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="h-3 bg-slate-200 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-green-500 w-0 transition-all duration-300"></div>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2">تتم العملية محلياً على جهازك</p>
+                </div>
+                <button id="btn-extract" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition-all shadow-lg shadow-green-500/20">
+                    ⚡ بدء الاستخراج
                 </button>
-
-                <div id="extractingLoader" class="hidden mt-6 text-center">
-                    <div class="loading-spinner mx-auto mb-4"></div>
-                    <p class="text-gray-600">جارٍ تحليل الصورة بالذكاء الاصطناعي...</p>
-                </div>
-
-                <div id="extractedResults" class="hidden mt-8">
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                        <h3 class="font-bold text-green-800">✅ تم استخراج <span id="extractedCount">0</span> دومين</h3>
-                    </div>
-                    <div id="extractedDomainsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
-                    <button id="goToFilterBtn" class="w-full next-btn text-white font-bold py-4 rounded-lg">➡️ الانتقال للفلترة</button>
-                </div>
             </div>
         </div>
 
-        <div id="content2" class="tab-content">
-            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">🔍 المرحلة 2: الفلاتر القاسية</h2>
-                
-                <div class="grid md:grid-cols-2 gap-6 mb-8">
-                    <div class="space-y-4">
-                        <div class="filter-card">
-                            <label class="block font-bold mb-2">الطول المسموح</label>
-                            <select id="lengthFilter" class="w-full p-2 border rounded">
-                                <option value="4-12">4-12 حرف</option>
-                            </select>
-                        </div>
-                        <div class="filter-card">
-                            <label class="block font-bold mb-2">الامتدادات</label>
-                            <div class="flex gap-4">
-                                <label><input type="checkbox" checked disabled> .com</label>
-                                <label><input type="checkbox" checked disabled> .ai</label>
-                            </div>
-                        </div>
+        <div id="view-step2" class="hidden card p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">نتائج الاستخراج والفلترة</h2>
+                <div class="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold text-sm">
+                    تم العثور على: <span id="count-raw">0</span>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="font-bold text-slate-500 mb-3 text-sm">النص الخام (قبل التنظيف)</h3>
+                    <textarea id="raw-text" class="w-full h-64 p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm font-mono" readonly></textarea>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-slate-800 mb-3">⚙️ قواعد الفلترة القاسية</h3>
+                        <label class="flex items-center gap-2 mb-2 cursor-pointer">
+                            <input type="checkbox" checked class="w-5 h-5 accent-green-500" id="filter-ext">
+                            <span>امتدادات Premium فقط (.com, .ai, .io)</span>
+                        </label>
+                        <label class="flex items-center gap-2 mb-2 cursor-pointer">
+                            <input type="checkbox" checked class="w-5 h-5 accent-green-500" id="filter-len">
+                            <span>الطول أقل من 12 حرف</span>
+                        </label>
+                        <label class="flex items-center gap-2 mb-2 cursor-pointer">
+                            <input type="checkbox" checked class="w-5 h-5 accent-green-500" id="filter-num">
+                            <span>منع الأرقام (No Numbers)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked class="w-5 h-5 accent-green-500" id="filter-clean">
+                            <span>تنظيف الرموز الزائدة</span>
+                        </label>
                     </div>
-
-                    <div>
-                        <h3 class="font-bold mb-2">إحصائيات الفلترة:</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-blue-50 p-4 rounded text-center">
-                                <div class="text-sm text-blue-700">العدد الكلي</div>
-                                <div class="font-bold text-2xl text-blue-600" id="totalBeforeFilter">0</div>
-                            </div>
-                            <div class="bg-green-50 p-4 rounded text-center">
-                                <div class="text-sm text-green-700">المقبولة</div>
-                                <div class="font-bold text-2xl text-green-600" id="passedCount">0</div>
-                            </div>
-                        </div>
-                    </div>
+                    <button onclick="runFilter()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-900">🔄 تطبيق الفلترة</button>
+                    <button onclick="goToAnalysis()" class="w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600 shadow-lg shadow-green-500/30">➡️ الانتقال للتحليل النهائي</button>
                 </div>
-
-                <button id="applyFiltersBtn" class="w-full next-btn text-white font-bold py-4 rounded-lg mb-6">🔍 تطبيق الفلاتر</button>
-                
-                <div id="filteringLoader" class="hidden text-center mb-6">
-                    <div class="loading-spinner mx-auto"></div>
+            </div>
+            
+            <div id="filtered-list" class="mt-6 flex flex-wrap gap-2">
                 </div>
+        </div>
 
-                <div id="filteredResults" class="hidden">
-                    <div id="filteredDomainsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
-                    <button id="goToAnalysisBtn" class="w-full next-btn text-white font-bold py-4 rounded-lg">➡️ الانتقال للتحليل</button>
-                </div>
+        <div id="view-step3" class="hidden card p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-black text-slate-800">تقرير كحيل برو</h2>
+                <p class="text-slate-500">التحليل الخوارزمي المتقدم</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600">
+                            <th class="p-4 rounded-r-xl">الدومين</th>
+                            <th class="p-4">التحليل (Tags)</th>
+                            <th class="p-4">النقاط (Score)</th>
+                            <th class="p-4 rounded-l-xl">أدوات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analysis-table-body">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <button onclick="location.reload()" class="text-slate-400 hover:text-slate-600 underline">بدء عملية جديدة</button>
             </div>
         </div>
 
-        <div id="content3" class="tab-content">
-            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">🎯 المرحلة 3: التحليل الثلاثي</h2>
-                <div class="grid grid-cols-3 gap-4 mb-6 text-center text-white">
-                    <div class="bg-blue-500 p-4 rounded-xl">🔍 Forensic</div>
-                    <div class="bg-purple-500 p-4 rounded-xl">🎯 Sniper</div>
-                    <div class="bg-green-500 p-4 rounded-xl">👔 Expert</div>
-                </div>
-
-                <button id="startAnalysisBtn" class="w-full next-btn text-white font-bold py-4 rounded-lg mb-6">🚀 بدء التحليل العميق</button>
-
-                <div id="analysisLoader" class="hidden text-center mb-6">
-                    <div class="loading-spinner mx-auto mb-2"></div>
-                    <p>جارٍ فحص الدومينات في Wayback Machine و GoDaddy...</p>
-                </div>
-
-                <div id="analysisResults" class="hidden">
-                    <div id="analyzedDomainsContainer" class="space-y-4 mb-6"></div>
-                    <button id="goToRankingBtn" class="w-full next-btn text-white font-bold py-4 rounded-lg">➡️ عرض النتائج النهائية</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="content4" class="tab-content">
-            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">🏆 المرحلة 4: الترتيب النهائي</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
-                    <div class="bg-gray-100 p-4 rounded">
-                        <div class="text-sm">أفضل دومين</div>
-                        <div class="font-bold text-xl text-green-600" id="topDomainName">-</div>
-                    </div>
-                    <div class="bg-gray-100 p-4 rounded">
-                        <div class="text-sm">السعر المتوقع</div>
-                        <div class="font-bold text-xl text-green-600" id="topDomainPrice">-</div>
-                    </div>
-                </div>
-                
-                <div id="rankingContainer" class="space-y-4"></div>
-                
-                <button onclick="location.reload()" class="w-full mt-6 bg-gray-800 text-white py-4 rounded-lg">🔄 تحليل جديد</button>
-            </div>
-        </div>
     </div>
 
     <script>
-        // --- بيانات المحاكاة الذكية ---
-        const MOCK_DOMAINS = [
-            "kheil-sniper.ai", "metaflow.com", "best-coffee-shop.com", "fast-pay-2026.com",
-            "brain.io", "aistudio.co", "cheap-viagra-now.com", "x.ai", "tech-hub.net",
-            "future-vision.ai", "123-domain.com", "super-data-system.io", "my-task.ai"
-        ];
+        // --- 1. CONFIGURATION (قواعد اللعبة) ---
+        const PREMIUM_TLDS = ['com', 'ai', 'io', 'co', 'net', 'org', 'app'];
+        const TREND_KEYWORDS = ['ai', 'gpt', 'tech', 'data', 'meta', 'soft', 'hub', 'lab', 'sys', 'bot', 'code', 'flow', 'web'];
+        const BAD_KEYWORDS = ['cheap', 'free', 'buy', 'porn', 'sex', 'hack', 'crack', 'spam', 'junk', '123'];
 
-        // Global state
-        let currentTab = 1;
-        let extractedDomains = [];
-        let filteredDomains = [];
-        let analyzedDomains = [];
+        let rawDomains = [];
+        let cleanDomains = [];
 
-        // Tab Handling
-        function switchTab(tabNum) {
-            if(document.getElementById(`tab${tabNum}`).classList.contains('locked')) return;
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab${tabNum}`).classList.add('active');
-            document.getElementById(`content${tabNum}`).classList.add('active');
-            currentTab = tabNum;
-        }
+        // --- 2. UPLOAD & OCR LOGIC ---
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const imgPreview = document.getElementById('img-preview');
 
-        function unlockTab(tabNum) { document.getElementById(`tab${tabNum}`).classList.remove('locked'); }
-        function completeTab(tabNum) { 
-            const tab = document.getElementById(`tab${tabNum}`);
-            tab.classList.add('completed'); tab.classList.remove('active');
-        }
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFile);
 
-        // --- Phase 1: Upload (Simulation) ---
-        const imageInput = document.getElementById('imageInput');
-        document.getElementById('uploadZone').addEventListener('click', () => imageInput.click());
-        
-        imageInput.addEventListener('change', (e) => {
-            if(e.target.files[0]) {
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (file) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    document.getElementById('imagePreview').src = ev.target.result;
-                    document.getElementById('uploadPlaceholder').classList.add('hidden');
-                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                    document.getElementById('extractBtn').disabled = false;
-                };
-                reader.readAsDataURL(e.target.files[0]);
+                    imgPreview.src = ev.target.result;
+                    document.getElementById('process-area').classList.remove('hidden');
+                    dropZone.classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
             }
-        });
-
-        document.getElementById('extractBtn').addEventListener('click', () => {
-            document.getElementById('extractingLoader').classList.remove('hidden');
-            // Fake Delay
-            setTimeout(() => {
-                document.getElementById('extractingLoader').classList.add('hidden');
-                extractedDomains = MOCK_DOMAINS; // Use mock data
-                displayExtracted();
-            }, 2000);
-        });
-
-        function displayExtracted() {
-            document.getElementById('extractedCount').innerText = extractedDomains.length;
-            const grid = document.getElementById('extractedDomainsGrid');
-            grid.innerHTML = '';
-            extractedDomains.forEach(d => {
-                grid.innerHTML += `<div class="domain-chip text-center font-bold text-gray-700">${d}</div>`;
-            });
-            document.getElementById('extractedResults').classList.remove('hidden');
         }
 
-        document.getElementById('goToFilterBtn').addEventListener('click', () => {
-            completeTab(1); unlockTab(2); switchTab(2);
-            document.getElementById('totalBeforeFilter').innerText = extractedDomains.length;
+        document.getElementById('btn-extract').addEventListener('click', () => {
+            const btn = document.getElementById('btn-extract');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercent = document.getElementById('progress-percent');
+            
+            btn.classList.add('hidden');
+            progressContainer.classList.remove('hidden');
+
+            // تشغيل Tesseract OCR
+            Tesseract.recognize(
+                imgPreview.src,
+                'eng', // اللغة الإنجليزية
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const pct = Math.floor(m.progress * 100);
+                            progressBar.style.width = pct + '%';
+                            progressPercent.innerText = pct + '%';
+                        }
+                    }
+                }
+            ).then(({ data: { text } }) => {
+                processExtractedText(text);
+            });
         });
 
-        // --- Phase 2: Filter (Logic) ---
-        document.getElementById('applyFiltersBtn').addEventListener('click', () => {
-            document.getElementById('filteringLoader').classList.remove('hidden');
-            setTimeout(() => {
-                // Actual logic running on mock data
-                filteredDomains = extractedDomains.filter(d => {
-                    if(d.match(/\d/)) return false; // No numbers
-                    if((d.match(/-/g) || []).length > 1) return false; // Max 1 hyphen
-                    if(d.includes('cheap') || d.includes('best')) return false; // Spam words
-                    return true; 
-                });
+        function processExtractedText(text) {
+            document.getElementById('raw-text').value = text;
+            
+            // استخدام Regex قوي لاستخراج أي شيء يشبه الدومين
+            // يبحث عن: كلمة + نقطة + امتداد (من 2 إلى 4 حروف)
+            const regex = /\b[a-zA-Z0-9-]+\.[a-zA-Z]{2,4}\b/g;
+            const matches = text.match(regex);
+            
+            rawDomains = matches ? [...new Set(matches.map(d => d.toLowerCase()))] : [];
+            
+            switchStep(2);
+            document.getElementById('count-raw').innerText = rawDomains.length;
+            runFilter();
+        }
+
+        // --- 3. FILTER LOGIC (محرك الفلترة المحلي) ---
+        function runFilter() {
+            const useExt = document.getElementById('filter-ext').checked;
+            const useLen = document.getElementById('filter-len').checked;
+            const useNum = document.getElementById('filter-num').checked;
+
+            cleanDomains = rawDomains.filter(domain => {
+                const parts = domain.split('.');
+                const name = parts[0];
+                const ext = parts[1];
+
+                if (useExt && !PREMIUM_TLDS.includes(ext)) return false;
+                if (useLen && name.length > 12) return false;
+                if (useNum && /\d/.test(name)) return false;
                 
-                document.getElementById('filteringLoader').classList.add('hidden');
-                document.getElementById('passedCount').innerText = filteredDomains.length;
-                
-                const grid = document.getElementById('filteredDomainsGrid');
-                grid.innerHTML = '';
-                filteredDomains.forEach(d => {
-                    grid.innerHTML += `<div class="domain-chip passed text-center font-bold text-gray-800">${d}</div>`;
-                });
-                document.getElementById('filteredResults').classList.remove('hidden');
-            }, 1500);
-        });
+                // تنظيف إضافي: استبعاد التكرار الشديد (aaabbb)
+                if (/(.)\1\1/.test(name)) return false; 
 
-        document.getElementById('goToAnalysisBtn').addEventListener('click', () => {
-            completeTab(2); unlockTab(3); switchTab(3);
-        });
+                return true;
+            });
 
-        // --- Phase 3: Analysis (Simulation) ---
-        document.getElementById('startAnalysisBtn').addEventListener('click', () => {
-            document.getElementById('analysisLoader').classList.remove('hidden');
-            setTimeout(() => {
-                // Generate Fake Analysis Scores
-                analyzedDomains = filteredDomains.map(d => {
-                    let score = Math.floor(Math.random() * (95 - 60) + 60);
-                    if(d.includes('ai')) score += 10;
-                    if(d.length < 8) score += 10;
-                    
-                    return {
-                        domain: d,
-                        score: score > 98 ? 98 : score,
-                        forensic: score > 80 ? "نظيف جداً" : "مقبول",
-                        sniper: d.includes('ai') ? "تريند عالي 🔥" : "متوسط",
-                        expert: "سهل النطق",
-                        price: score > 85 ? "$5,000+" : "$500"
-                    };
-                }).sort((a,b) => b.score - a.score);
-
-                document.getElementById('analysisLoader').classList.add('hidden');
-                
-                const container = document.getElementById('analyzedDomainsContainer');
-                container.innerHTML = '';
-                analyzedDomains.forEach(d => {
-                    let color = d.score > 80 ? 'text-green-600' : 'text-blue-600';
-                    container.innerHTML += `
-                        <div class="analysis-card flex justify-between items-center">
-                            <div>
-                                <h3 class="font-bold text-lg">${d.domain}</h3>
-                                <div class="text-sm text-gray-500">${d.sniper} | ${d.price}</div>
-                            </div>
-                            <div class="text-2xl font-bold ${color}">${d.score}/100</div>
-                        </div>
-                    `;
-                });
-                document.getElementById('analysisResults').classList.remove('hidden');
-            }, 3000);
-        });
-
-        document.getElementById('goToRankingBtn').addEventListener('click', () => {
-            completeTab(3); unlockTab(4); switchTab(4);
-            displayRanking();
-        });
-
-        // --- Phase 4: Ranking ---
-        function displayRanking() {
-            if(analyzedDomains.length > 0) {
-                document.getElementById('topDomainName').innerText = analyzedDomains[0].domain;
-                document.getElementById('topDomainPrice').innerText = analyzedDomains[0].price;
-                
-                const container = document.getElementById('rankingContainer');
-                container.innerHTML = '';
-                analyzedDomains.forEach((d, idx) => {
-                    let badge = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : '🏅');
-                    container.innerHTML += `
-                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500 flex items-center gap-4">
-                            <div class="text-2xl">${badge}</div>
-                            <div class="flex-1">
-                                <div class="font-bold text-lg">${d.domain}</div>
-                                <div class="text-sm text-gray-500">موصى به للاستثمار</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-green-600">${d.score}</div>
-                                <div class="text-xs bg-gray-100 px-2 rounded">${d.price}</div>
-                            </div>
-                        </div>
-                    `;
+            // عرض النتائج
+            const container = document.getElementById('filtered-list');
+            container.innerHTML = '';
+            if (cleanDomains.length === 0) {
+                container.innerHTML = '<div class="text-red-500 font-bold p-4">لم ينجح أي دومين في الفلترة! حاول تخفيف القيود.</div>';
+            } else {
+                cleanDomains.forEach(d => {
+                    container.innerHTML += `<div class="bg-white border border-slate-200 px-3 py-1 rounded-lg text-slate-700 font-mono shadow-sm">${d}</div>`;
                 });
             }
+        }
+
+        function goToAnalysis() {
+            if (cleanDomains.length === 0) return alert('لا توجد دومينات لتحليلها!');
+            switchStep(3);
+            renderAnalysisTable();
+        }
+
+        // --- 4. SCORING ALGORITHM (الخوارزمية الذكية) ---
+        function calculateScore(domain) {
+            const parts = domain.split('.');
+            const name = parts[0];
+            const ext = parts[1];
+            
+            let score = 50; // بداية
+            let tags = [];
+
+            // 1. Forensic Check (الجنائي)
+            let isSpam = false;
+            BAD_KEYWORDS.forEach(bad => {
+                if (name.includes(bad)) {
+                    score -= 40; 
+                    tags.push('<span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">⚠️ Risk</span>');
+                    isSpam = true;
+                }
+            });
+
+            // 2. Sniper Check (التريند)
+            TREND_KEYWORDS.forEach(trend => {
+                if (name.includes(trend)) {
+                    score += 15;
+                    tags.push(`<span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">🔥 ${trend.toUpperCase()}</span>`);
+                }
+            });
+
+            // 3. Expert Check (الجودة)
+            if (name.length <= 4) {
+                score += 30;
+                tags.push('<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">💎 Rare 4L</span>');
+            } else if (name.length <= 6) {
+                score += 15;
+            }
+
+            // الامتداد
+            if (ext === 'ai') { score += 20; tags.push('<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">🤖 AI</span>'); }
+            if (ext === 'com') { score += 10; tags.push('<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👑 COM</span>'); }
+
+            // نطق (حساب الحروف المتحركة)
+            const vowels = (name.match(/[aeiou]/g) || []).length;
+            if (vowels === 0 && name.length > 3) {
+                score -= 10;
+                tags.push('<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Hard to say</span>');
+            }
+
+            // Cap score
+            if (score > 100) score = 100;
+            if (score < 0) score = 0;
+
+            return { score, tags: tags.join(' ') };
+        }
+
+        function renderAnalysisTable() {
+            const tbody = document.getElementById('analysis-table-body');
+            tbody.innerHTML = '';
+            
+            // ترتيب حسب السكور
+            const analyzedData = cleanDomains.map(d => ({ domain: d, ...calculateScore(d) }))
+                                             .sort((a, b) => b.score - a.score);
+
+            analyzedData.forEach(item => {
+                let scoreColor = item.score > 75 ? 'text-green-500' : (item.score > 40 ? 'text-yellow-500' : 'text-red-500');
+                
+                let row = `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-all">
+                        <td class="p-4 font-bold text-slate-800 text-lg">${item.domain}</td>
+                        <td class="p-4 flex flex-wrap gap-1">${item.tags || '-'}</td>
+                        <td class="p-4 font-black text-xl ${scoreColor}">${item.score}</td>
+                        <td class="p-4">
+                            <div class="flex gap-2">
+                                <a href="https://www.godaddy.com/domain-value-appraisal/appraisal/?domainToCheck=${item.domain}" target="_blank" class="bg-slate-800 text-white px-3 py-1 rounded text-xs hover:bg-green-500 transition-colors">💰 Value</a>
+                                <a href="https://web.archive.org/web/*/${item.domain}" target="_blank" class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs hover:bg-gray-300 transition-colors">🕰 History</a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // --- UTILS ---
+        function switchStep(step) {
+            // UI Update
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`view-step${i}`).classList.add('hidden');
+                document.getElementById(`step${i}-badge`).classList.remove('step-active');
+                if (i < step) document.getElementById(`step${i}-badge`).classList.add('step-done', 'border-slate-800');
+                else document.getElementById(`step${i}-badge`).classList.add('step-inactive');
+            }
+            
+            document.getElementById(`view-step${step}`).classList.remove('hidden');
+            document.getElementById(`step${step}-badge`).classList.remove('step-inactive', 'step-done');
+            document.getElementById(`step${step}-badge`).classList.add('step-active');
         }
     </script>
 </body>
